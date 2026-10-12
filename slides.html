@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DBMS Normalization & FD Analyzer - DA1 Presentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #131b2e;
+      --card-border: #1e293b;
+      --primary: #818cf8;
+      --accent: #c084fc;
+      --emerald: #34d399;
+      --red: #f87171;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 1.5rem;
+    }
+
+    .deck-container {
+      width: 100%;
+      max-width: 1200px;
+      aspect-ratio: 16 / 9;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      padding: 3rem;
+    }
+
+    .slide {
+      display: none;
+      height: 100%;
+      flex-direction: column;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .slide.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .slide-badge {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--primary);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .slide-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 1.75rem;
+    }
+
+    .slide-title span {
+      color: var(--accent);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.75rem;
+      flex-grow: 1;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1.5rem;
+      flex-grow: 1;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.35rem;
+    }
+
+    .card-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .bullet-list li {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .bullet-list li strong {
+      color: #fff;
+      white-space: nowrap;
+    }
+
+    .icon-emerald {
+      color: var(--emerald);
+      font-weight: bold;
+    }
+
+    .icon-primary {
+      color: var(--primary);
+      font-weight: bold;
+    }
+
+    .nav-bar {
+      margin-top: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .nav-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #fff;
+      font-family: inherit;
+      font-weight: 600;
+      padding: 0.6rem 1.4rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .nav-btn:hover {
+      background: #334155;
+      border-color: var(--primary);
+    }
+
+    .counter {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      background: rgba(129, 140, 248, 0.15);
+      color: var(--primary);
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+
+    @media print {
+      body { padding: 0; background: #fff; color: #000; }
+      .deck-container { border: none; box-shadow: none; aspect-ratio: auto; }
+      .slide { display: flex !important; page-break-after: always; height: 100vh; padding: 2rem 0; }
+      .nav-bar { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="deck-container" id="deck">
+    
+    <!-- SLIDE 1 -->
+    <div class="slide active">
+      <div class="slide-badge">Database Management Systems • Final DA1</div>
+      <h1 class="slide-title">Interactive Normalization & <br><span>Functional Dependency Analyzer</span></h1>
+      <p style="color: var(--text-muted); font-size: 1.15rem; margin-bottom: 2rem; max-width: 800px;">
+        A comprehensive diagnostic environment for schema closure calculation, candidate key discovery, and automated normal form verification (1NF &rarr; BCNF).
+      </p>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">1. Attribute Closures</div>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">
+            Fixed-point algorithmic calculation of <code>X⁺</code> with step-by-step expansion timeline based on Armstrong’s Axioms.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-title">2. Candidate Key Finder</div>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">
+            Pruned combinatorial search partitioning attributes into Essential, RHS-only, and Middle sets.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-title">3. Normal Form Diagnostics</div>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">
+            Granular per-FD compliance checking for 1NF, 2NF, 3NF, and BCNF with explicit mathematical justification.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 -->
+    <div class="slide">
+      <div class="slide-badge">Evaluation Criterion 1 • 1 Mark</div>
+      <h2 class="slide-title">Problem Statement & Requirements Understanding</h2>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">The Challenge in RDBMS Design</div>
+          <div class="card-sub">Why manual normalization fails</div>
+          <ul class="bullet-list">
+            <li><span class="icon-primary">•</span> <div><strong>Combinatorial Explosion:</strong> Finding all candidate keys is an NP-hard problem; manual checks miss composite keys.</div></li>
+            <li><span class="icon-primary">•</span> <div><strong>Schema Anomalies:</strong> Un-normalized relations lead to severe insertion, update, and deletion anomalies.</div></li>
+            <li><span class="icon-primary">•</span> <div><strong>Lack of Diagnostic Feedback:</strong> Standard tools only output "3NF" without pinpointing which dependency failed or why.</div></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">Project Objectives & Deliverables</div>
+          <div class="card-sub">What our analyzer provides</div>
+          <ul class="bullet-list">
+            <li><span class="icon-emerald">✔</span> <div><strong>Flexible Parsing:</strong> Normalizes arbitrary attribute names and FD syntaxes (<code>-></code>, <code>→</code>).</div></li>
+            <li><span class="icon-emerald">✔</span> <div><strong>Transparent Derivations:</strong> Visualizes step-by-step mathematical reasoning for students and instructors.</div></li>
+            <li><span class="icon-emerald">✔</span> <div><strong>Actionable Audit Cards:</strong> Breaks down each FD's 2NF, 3NF, and BCNF criteria status.</div></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 -->
+    <div class="slide">
+      <div class="slide-badge">Technical Implementation • 2 Marks</div>
+      <h2 class="slide-title">System Architecture & Engineering Stack</h2>
+      <div style="display: flex; flex-direction: column; gap: 1rem; flex-grow: 1;">
+        <div class="card" style="padding: 1rem 1.5rem;">
+          <div class="card-title" style="font-size: 1.05rem;">1. Presentation & Interaction Layer <code>React 19 + Lucide Icons</code></div>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem;">Two-column responsive dashboard, interactive attribute pill selectors, dark/light theme switching, and real-time schema preview.</p>
+        </div>
+        <div class="card" style="padding: 1rem 1.5rem;">
+          <div class="card-title" style="font-size: 1.05rem;">2. Reactive State & Performance Layer <code>Vite 8 + React useMemo</code></div>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem;">Memoized computation pipeline guarantees zero input lag; recalculates closures and normal forms on every keystroke without full DOM re-renders.</p>
+        </div>
+        <div class="card" style="padding: 1rem 1.5rem;">
+          <div class="card-title" style="font-size: 1.05rem;">3. Computational Engine <code>src/utils/normalization.js</code></div>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem;">Pure, decoupled mathematical core executing Armstrong's Axioms, fixed-point closures, and candidate key search algorithms.</p>
+        </div>
+        <div class="card" style="padding: 1rem 1.5rem;">
+          <div class="card-title" style="font-size: 1.05rem;">4. Automated Test Harness <code>test-normalization.js</code></div>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem;">CLI unit test runner verifying algorithm accuracy against classic DBMS exam benchmarks before UI integration.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 -->
+    <div class="slide">
+      <div class="slide-badge">Core Engine • Module 1</div>
+      <h2 class="slide-title">Module 1: Attribute Closure (X⁺) Calculation</h2>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Mathematical Algorithm</div>
+          <div class="card-sub">Fixed-point expansion on Armstrong's Axioms</div>
+          <ul class="bullet-list">
+            <li><span class="icon-primary">1.</span> <div><strong>Init:</strong> Start with initial set: <code>X⁺ = X</code>.</div></li>
+            <li><span class="icon-primary">2.</span> <div><strong>Iterate:</strong> For every FD <code>Y &rarr; Z</code> in F, check if <code>Y &sube; X⁺</code>.</div></li>
+            <li><span class="icon-primary">3.</span> <div><strong>Expand:</strong> If LHS is satisfied, union RHS: <code>X⁺ = X⁺ &cup; Z</code>.</div></li>
+            <li><span class="icon-primary">4.</span> <div><strong>Stabilize:</strong> Repeat until no new attributes are added (fixed-point reached).</div></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">Interactive UI Features</div>
+          <div class="card-sub">Educational feedback & audit trail</div>
+          <ul class="bullet-list">
+            <li><span class="icon-emerald">✔</span> <div><strong>Quick-Add Attribute Pills:</strong> <code>+A</code>, <code>+B</code> buttons allow one-click toggling of closure targets.</div></li>
+            <li><span class="icon-emerald">✔</span> <div><strong>Step-by-Step Timeline:</strong> Displays the exact FD applied at each stage and intermediate set states.</div></li>
+            <li><span class="icon-emerald">✔</span> <div><strong>Convergence Marker:</strong> Explicitly highlights when the fixed-point stabilizes.</div></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 -->
+    <div class="slide">
+      <div class="slide-badge">Core Engine • Module 2</div>
+      <h2 class="slide-title">Module 2: Candidate Key Discovery & Pruning</h2>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Search-Space Pruning Strategy</div>
+          <div class="card-sub">Eliminates naive 2ᴺ exponential brute-force</div>
+          <ul class="bullet-list">
+            <li><span class="icon-primary">•</span> <div><strong>Essential Attributes:</strong> Never appear on the RHS of any FD. MUST be present in every candidate key.</div></li>
+            <li><span class="icon-primary">•</span> <div><strong>RHS-Only Attributes:</strong> Appear only on the RHS. Can NEVER be part of any minimal candidate key.</div></li>
+            <li><span class="icon-primary">•</span> <div><strong>Middle Attributes:</strong> Appear on both sides; combinatorial subsets are tested in order of size.</div></li>
+            <li><span class="icon-primary">•</span> <div><strong>Minimality Guarantee:</strong> Discards any candidate superset that contains an already discovered key.</div></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">Classification & Output</div>
+          <div class="card-sub">Foundation for normal form analysis</div>
+          <ul class="bullet-list">
+            <li><span class="icon-emerald">✔</span> <div><strong>Prime Attributes:</strong> Attributes part of at least one candidate key (Emerald badge).</div></li>
+            <li><span class="icon-emerald">✔</span> <div><strong>Non-Prime Attributes:</strong> Attributes outside all candidate keys (Crimson badge).</div></li>
+            <li><span class="icon-emerald">✔</span> <div><strong>Derivation Accordion:</strong> Collapsible interactive log displaying subset tests and minimality checks.</div></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6 -->
+    <div class="slide">
+      <div class="slide-badge">Core Engine • Module 3</div>
+      <h2 class="slide-title">Module 3: Normal Form Diagnostic Engine</h2>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">2NF Verification</div>
+          <div class="card-sub">Eliminates Partial Dependencies</div>
+          <ul class="bullet-list" style="font-size: 0.88rem;">
+            <li><span class="icon-primary">•</span> <div><strong>Condition:</strong> No non-prime attribute may depend on a proper subset of any candidate key.</div></li>
+            <li><span class="icon-emerald">•</span> <div><strong>Diagnostic:</strong> Cites the specific key subset (e.g. <code>A &sub; {AB}</code>) violating 2NF.</div></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">3NF Verification</div>
+          <div class="card-sub">Eliminates Transitive Dependencies</div>
+          <ul class="bullet-list" style="font-size: 0.88rem;">
+            <li><span class="icon-primary">•</span> <div><strong>Condition:</strong> For every non-trivial <code>X &rarr; Y</code>, either X is a Superkey OR Y is Prime.</div></li>
+            <li><span class="icon-emerald">•</span> <div><strong>Diagnostic:</strong> Checks prime status of <code>Y \ X</code> to allow valid 3NF dependencies.</div></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">BCNF Verification</div>
+          <div class="card-sub">Strict Superkey Determinant</div>
+          <ul class="bullet-list" style="font-size: 0.88rem;">
+            <li><span class="icon-primary">•</span> <div><strong>Condition:</strong> For every non-trivial <code>X &rarr; Y</code>, X MUST be a Superkey.</div></li>
+            <li><span class="icon-emerald">•</span> <div><strong>Diagnostic:</strong> Computes <code>X⁺</code>; flags BCNF failure if <code>X⁺ &sub; R</code>.</div></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7 -->
+    <div class="slide">
+      <div class="slide-badge">System Design & UI/UX • 1 Mark</div>
+      <h2 class="slide-title">UI/UX Architecture & User Experience</h2>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Design System & Layout</div>
+          <div class="card-sub">Modern glassmorphism & responsive layout</div>
+          <ul class="bullet-list">
+            <li><span class="icon-primary">★</span> <div><strong>Two-Column Workbench:</strong> Fixed input control panel on the left, tabbed analysis workspace on the right.</div></li>
+            <li><span class="icon-primary">★</span> <div><strong>Dark & Light Theme:</strong> CSS variable design system supporting seamless theme toggling.</div></li>
+            <li><span class="icon-primary">★</span> <div><strong>Accessible Typography:</strong> JetBrains Mono for formal set notations and clean display fonts for instructions.</div></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">Educational Usability</div>
+          <div class="card-sub">Built for seamless classroom demonstration</div>
+          <ul class="bullet-list">
+            <li><span class="icon-emerald">✔</span> <div><strong>Hero Status Banner:</strong> High-impact card showcasing the overall highest normal form.</div></li>
+            <li><span class="icon-emerald">✔</span> <div><strong>One-Click Presets:</strong> Preloaded standard exam questions (BCNF violation, 3NF-only, partial dependency).</div></li>
+            <li><span class="icon-emerald">✔</span> <div><strong>Reference Guide:</strong> Bottom cards providing quick theory summaries.</div></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 8 -->
+    <div class="slide">
+      <div class="slide-badge">Testing & Project Progress • 2 Marks</div>
+      <h2 class="slide-title">Testing Methodology & Project Milestones</h2>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Unit Test Suite (test-normalization.js)</div>
+          <div class="card-sub">Independent CLI test execution</div>
+          <ul class="bullet-list" style="font-size: 0.88rem;">
+            <li><span class="icon-emerald">✔</span> <div><strong>Test 1 (Transitive):</strong> <code>A&rarr;B, B&rarr;C, C&rarr;D</code> &rarr; Verified 2NF pass, 3NF fail.</div></li>
+            <li><span class="icon-emerald">✔</span> <div><strong>Test 2 (Partial):</strong> <code>AB&rarr;C, A&rarr;D</code> &rarr; Verified 2NF failure (1NF).</div></li>
+            <li><span class="icon-emerald">✔</span> <div><strong>Test 3 (3NF but not BCNF):</strong> <code>AB&rarr;C, C&rarr;A</code> &rarr; Verified candidate keys {AB}, {BC}, 3NF pass, BCNF fail.</div></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">Progressive Development Lifecycle</div>
+          <div class="card-sub">4-Phase execution milestones</div>
+          <ul class="bullet-list" style="font-size: 0.88rem;">
+            <li><span class="icon-primary">1.</span> <div><strong>Phase 1:</strong> Algorithmic formulation & independent unit testing.</div></li>
+            <li><span class="icon-primary">2.</span> <div><strong>Phase 2:</strong> Reactive React 19 architecture & state memoization.</div></li>
+            <li><span class="icon-primary">3.</span> <div><strong>Phase 3:</strong> Timeline visualizers & collapsible calculation paths.</div></li>
+            <li><span class="icon-primary">4.</span> <div><strong>Phase 4:</strong> Per-FD diagnostic audit cards & dark/light theme polish.</div></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 9 -->
+    <div class="slide">
+      <div class="slide-badge">Creativity & Innovation • 2 Marks</div>
+      <h2 class="slide-title">Key Innovations & Competitive Edge</h2>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">1. Algorithmic Explainability</div>
+          <p style="font-size: 0.95rem; color: var(--text-muted); margin-top: 0.5rem;">
+            Moves beyond "black-box" outputs by recording and rendering an interactive audit trail of each rule execution and state change.
+          </p>
+          <div class="card-title" style="margin-top: 1.5rem;">2. Search-Space Optimization</div>
+          <p style="font-size: 0.95rem; color: var(--text-muted); margin-top: 0.5rem;">
+            Employs database theory principles (essential vs RHS-only attributes) to prune exponential search spaces before combinatorial testing.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-title">3. Per-FD Diagnostic Card System</div>
+          <p style="font-size: 0.95rem; color: var(--text-muted); margin-top: 0.5rem;">
+            Evaluates dependencies individually, providing database designers with actionable insights on which exact tables need decomposition.
+          </p>
+          <div class="card-title" style="margin-top: 1.5rem;">4. Built-in Academic Presets</div>
+          <p style="font-size: 0.95rem; color: var(--text-muted); margin-top: 0.5rem;">
+            One-click exam problem loader enables instant live demonstrations during viva and academic presentations.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 10 -->
+    <div class="slide">
+      <div class="slide-badge">Summary & Conclusion</div>
+      <h2 class="slide-title">Conclusion & Future Enhancements</h2>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Project Accomplishments</div>
+          <div class="card-sub">Full delivery against DA1 rubric</div>
+          <ul class="bullet-list">
+            <li><span class="icon-emerald">✔</span> <div><strong>100% Mathematical Precision:</strong> Rigorous implementation of Armstrong's Axioms and normal form theorems.</div></li>
+            <li><span class="icon-emerald">✔</span> <div><strong>High Usability:</strong> Instant reactive updates, interactive pills, and visual step timelines.</div></li>
+            <li><span class="icon-emerald">✔</span> <div><strong>Comprehensive Testing:</strong> Verified with textbook scenarios across all normal forms.</div></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">Future Scope</div>
+          <div class="card-sub">Roadmap for DA2 and beyond</div>
+          <ul class="bullet-list">
+            <li><span class="icon-primary">★</span> <div><strong>Synthesis Decomposition:</strong> Automated schema decomposition into 3NF and BCNF tables.</div></li>
+            <li><span class="icon-primary">★</span> <div><strong>Lossless Join Testing:</strong> Tableau / Chase algorithm to verify join properties.</div></li>
+            <li><span class="icon-primary">★</span> <div><strong>SQL DDL Export:</strong> Generate <code>CREATE TABLE</code> scripts with primary/foreign keys directly.</div></li>
+          </ul>
+        </div>
+      </div>
+      <div style="text-align: center; margin-top: 2rem; color: var(--text-muted); font-size: 1.1rem; font-weight: 600;">
+        Thank You! Questions & Live Demo.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Navigation Bar -->
+  <div class="nav-bar">
+    <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">&#8592; Previous</button>
+    <div class="counter" id="counter">Slide 1 of 10</div>
+    <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">Next &#8594;</button>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const counter = document.getElementById('counter');
+
+    function showSlide(index) {
+      slides.forEach((s, i) => {
+        s.classList.toggle('active', i === index);
+      });
+      counter.textContent = `Slide ${index + 1} of ${slides.length}`;
+    }
+
+    function changeSlide(direction) {
+      currentSlide = Math.max(0, Math.min(slides.length - 1, currentSlide + direction));
+      showSlide(currentSlide);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'Space') {
+        changeSlide(1);
+      } else if (e.key === 'ArrowLeft') {
+        changeSlide(-1);
+      }
+    });
+  </script>
+</body>
+</html>
